@@ -1,0 +1,21 @@
+# docker-compose.override.yml
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    env_file:
+      - .env
+    ports:
+      - "${HOST_PORT:-3000}:${PORT:-3000}"
+    volumes:
+      - ./:/app
+      - /app/node_modules
+    command: >
+      sh -c "
+        pnpm prisma generate &&
+        pnpm run start:dev
+      "
