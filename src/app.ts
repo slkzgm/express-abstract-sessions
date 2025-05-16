@@ -13,7 +13,7 @@ app.use(cors({ origin: CONFIG.clientOrigin, credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 
-// Attach routes
+// Attach main router
 app.use("/api", router);
 
 // Example root route
@@ -21,15 +21,14 @@ app.get("/", (req, res) => {
   res.json({ message: "API is up and running!" });
 });
 
-// Log a startup message
+// Startup log
 logger.info("Express application configured.");
 
-// Global error handler (must be the last middleware)
+// Global error handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (res.headersSent) {
     return next(err);
   }
-
   logger.error(`Global error handler => ${err.message}`);
   res.status(500).json({ error: "Internal Server Error" });
 });

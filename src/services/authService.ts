@@ -9,23 +9,18 @@ import { publicClient } from "../clients/publicClient";
 
 /**
  * requestSiweMessageService
- * Creates a SIWE message with a fresh nonce. Ensures only one valid nonce at a time.
+ * Creates a SIWE message (with a fresh nonce). Ensures only one valid nonce at a time.
  */
 export async function requestSiweMessageService(
   address: string,
 ): Promise<string> {
-  const lowerAddr = address.toLowerCase();
-
   await prisma.authChallenge.deleteMany({
-    where: { address: lowerAddr },
+    where: { address },
   });
 
-  // Generate a random nonce
   const nonce = randomBytes(16).toString("hex");
-
-  // Build a SIWE message
   const siweMsg = createSiweMessage({
-    address: lowerAddr as `0x${string}`,
+    address: address as `0x${string}`,
     domain: CONFIG.siweDomain,
     statement: CONFIG.siweStatement,
     uri: CONFIG.siweUri,
@@ -34,12 +29,12 @@ export async function requestSiweMessageService(
     nonce,
   });
 
-  // We set a 5-minute expiration for this authChallenge
+  // 5-minute expiration
   const expiresAt = new Date(Date.now() + CONFIG.nonceExpiryMs);
 
   await prisma.authChallenge.create({
     data: {
-      address: lowerAddr,
+      address,
       siweMessage: siweMsg,
       nonce,
       expiresAt,
@@ -51,23 +46,15 @@ export async function requestSiweMessageService(
 
 /**
  * verifySiweSignatureService
- * - Loads the SIWE record
- * - Checks expiration
- * - Verifies the signature using `viem`
- * - Deletes the used record (preventing replay)
- * - Creates/gets the user if needed
- * - Returns a JWT
+ * Verifies the SIWE signature and returns a JWT if successful.
  */
 export async function verifySiweSignatureService(
   address: string,
   signature: string,
 ): Promise<string> {
-  const lowerAddr = address.toLowerCase();
-
   const record = await prisma.authChallenge.findFirst({
-    where: { address: lowerAddr },
+    where: { address },
   });
-
   if (!record) {
     throw new Error("No SIWE record found for this address");
   }
@@ -80,35 +67,35 @@ export async function verifySiweSignatureService(
   const { siweMessage, nonce } = record;
   const parsed = parseSiweMessage(siweMessage);
 
-  if (!parsed.address || parsed.address.toLowerCase() !== lowerAddr) {
+  if (!parsed.address || parsed.address.toLowerCase() !== address) {
     throw new Error("Address mismatch in SIWE verification");
   }
   if (!parsed.nonce || parsed.nonce !== nonce) {
     throw new Error("Nonce mismatch in SIWE verification");
   }
 
-  // This will throw if signature is invalid
+  // Throws if invalid
   await publicClient.verifySiweMessage({
     message: siweMessage,
     signature: signature as Hex,
   });
 
-  // Delete the nonce record to prevent replay attacks
+  // Delete used record
   await prisma.authChallenge.delete({
     where: { id: record.id },
   });
 
   let user = await prisma.user.findUnique({
-    where: { address: lowerAddr },
+    where: { address },
   });
   if (!user) {
     user = await prisma.user.create({
-      data: { address: lowerAddr },
+      data: { address },
     });
   }
 
-  // Return a signed JWT (example: 1 day expiration)
-  const token = jwt.sign({ address: lowerAddr }, CONFIG.jwtSecret, {
+  // Issue a JWT (1-day expiration)
+  const token = jwt.sign({ address }, CONFIG.jwtSecret, {
     expiresIn: "1d",
   });
 

@@ -1,16 +1,14 @@
 // /src/routes/sessionRoutes.ts
 import { Router } from "express";
+import { authMiddleware } from "../middlewares/authMiddleware";
 import {
-  getOrCreateSessionHandler,
-  confirmSessionHandler,
+  createSessionHandler,
   getSessionStatusHandler,
 } from "../controllers/sessionController";
-import { authMiddleware } from "../middlewares/authMiddleware";
 
 const sessionRouter = Router();
 
-sessionRouter.get("/", authMiddleware, getOrCreateSessionHandler);
-sessionRouter.post("/confirm", authMiddleware, confirmSessionHandler);
+sessionRouter.post("/create", authMiddleware, createSessionHandler);
 sessionRouter.get("/status", authMiddleware, getSessionStatusHandler);
 
 export default sessionRouter;

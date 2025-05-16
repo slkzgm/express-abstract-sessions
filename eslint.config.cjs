@@ -17,6 +17,11 @@ module.exports = [
             globals: {
                 console: 'readonly',
                 process: 'readonly',
+                Buffer: 'readonly',
+                setInterval: 'readonly',
+                clearInterval: 'readonly',
+                setTimeout: 'readonly',
+                clearTimeout: 'readonly',
             },
         },
         plugins: {

@@ -1,6 +1,6 @@
 // /src/middlewares/sessionMiddleware.ts
 import { Request, Response, NextFunction } from "express";
-import { fetchAndSyncSession } from "../services/sessionService";
+import { getOrCreateSessionClient } from "../services/sessionClientCache";
 import { logger } from "../utils/logger";
 
 export async function sessionMiddleware(
@@ -14,19 +14,15 @@ export async function sessionMiddleware(
       return;
     }
 
-    const record = await fetchAndSyncSession(req.user.address);
-    if (!record || record.status !== "active") {
+    const sessionClient = await getOrCreateSessionClient(req.user.address);
+    if (!sessionClient) {
       res
         .status(403)
-        .json({
-          error:
-            "No active session. Please create or confirm your session first.",
-        });
+        .json({ error: "Session invalid or not created on-chain" });
       return;
     }
 
-    // Attach session DB record to request for later usage
-    (req as any).sessionRecord = record;
+    (req as any).sessionClient = sessionClient;
     next();
   } catch (error) {
     logger.error(`[ERROR] sessionMiddleware => ${(error as Error).message}`);

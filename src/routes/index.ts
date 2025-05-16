@@ -11,16 +11,16 @@ import mintRouter from "./mintRoutes";
 
 const router = Router();
 
-// Public
+// Public endpoints
 router.get("/challenge", getSiweMessageHandler);
 router.post("/login", siweLoginHandler);
 
-// Protected example
+// Example protected route
 router.get("/protected", authMiddleware, (req: Request, res: Response) => {
   res.json({ message: "You are authorized to see this!" });
 });
 
-// Session
+// Session endpoints
 router.use("/session", sessionRouter);
 
 // Logout

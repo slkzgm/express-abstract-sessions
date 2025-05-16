@@ -1,5 +1,5 @@
 {
-	"name": "web3-auth-backend",
+	"name": "express-abstract-sessions",
 	"version": "1.0.0",
 	"description": "A TS-based backend skeleton for web3 authentication and session management",
 	"type": "commonjs",

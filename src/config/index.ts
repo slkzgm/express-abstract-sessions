@@ -24,5 +24,7 @@ export const CONFIG = {
   siweStatement: process.env.SIWE_STATEMENT || "Sign in with Ethereum",
   siweUri: process.env.SIWE_URI || "https://yourapp.io",
   siweChainId: Number(process.env.SIWE_CHAIN_ID) || 1,
-  nonceExpiryMs: Number(process.env.NONCE_EXPIRY_MS) || 300_000, // 5min default
+  nonceExpiryMs: Number(process.env.NONCE_EXPIRY_MS) || 300_000,
+  dbEncryptionKey:
+    process.env.DB_ENCRYPTION_KEY || "abcdefghijklmnopqrstuvwxyz123456",
 };

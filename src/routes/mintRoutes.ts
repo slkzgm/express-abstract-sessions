@@ -6,6 +6,7 @@ import { mintHandler } from "../controllers/mintController";
 
 const mintRouter = Router();
 
+// Protected endpoint for minting
 mintRouter.post("/mint", authMiddleware, sessionMiddleware, mintHandler);
 
 export default mintRouter;

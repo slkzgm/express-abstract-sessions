@@ -32,7 +32,6 @@ model SessionKey {
   privateKey        String
   sessionKeyAddress String
   sessionConfigJson String
-  status            String   @default("pending")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

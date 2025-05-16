@@ -1,5 +1,5 @@
 // /src/controllers/authController.ts
-import { NextFunction, Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import {
   requestSiweMessageService,
   verifySiweSignatureService,
@@ -7,10 +7,6 @@ import {
 import { CONFIG } from "../config";
 import { logger } from "../utils/logger";
 
-/**
- * getSiweMessageHandler
- * Returns a SIWE message (with ephemeral nonce) for the given address
- */
 export async function getSiweMessageHandler(
   req: Request,
   res: Response,
@@ -33,10 +29,6 @@ export async function getSiweMessageHandler(
   }
 }
 
-/**
- * siweLoginHandler
- * Verifies SIWE signature, returns JWT in an HttpOnly cookie.
- */
 export async function siweLoginHandler(
   req: Request,
   res: Response,
@@ -49,13 +41,16 @@ export async function siweLoginHandler(
       return;
     }
 
-    const token = await verifySiweSignatureService(address, signature);
+    const token = await verifySiweSignatureService(
+      address.toLowerCase(),
+      signature,
+    );
 
     res.cookie("jwt", token, {
       httpOnly: true,
       secure: CONFIG.isProd,
       sameSite: CONFIG.isProd ? "none" : "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     res.json({ success: true });
@@ -65,10 +60,6 @@ export async function siweLoginHandler(
   }
 }
 
-/**
- * logoutHandler
- * Clears the JWT cookie.
- */
 export async function logoutHandler(
   _req: Request,
   res: Response,
